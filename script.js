@@ -10,6 +10,13 @@
   const loadButton = document.getElementById('load-folder-button');
   const backButton = document.getElementById('back-folder-button');
   const summary = document.getElementById('folder-summary');
+  const externalPlayer = document.getElementById('external-player');
+  const externalPlayerTitle = document.getElementById('external-player-title');
+  const externalPlayerOpen = document.getElementById('external-player-open');
+  const externalPlayerStage = document.getElementById('external-player-stage');
+  const externalPlayerMessage = document.getElementById('external-player-message');
+  let externalLoadSequence = 0;
+  let activeHlsPlayer = null;
   const musicPlayer = document.getElementById('music-player');
   const musicAudio = document.getElementById('music-audio');
   const musicCurrentTitle = document.getElementById('music-current-title');
@@ -46,6 +53,7 @@
     message.hidden = false;
     summary.hidden = true;
     list.replaceChildren();
+    externalPlayer.hidden = true;
     loadButton.textContent = 'Abrir';
   }
 
@@ -383,6 +391,215 @@
     renderMusicPlaylist();
   });
 
+
+  function getSafeHttpUrl(rawValue) {
+    try {
+      const url = new URL(String(rawValue || '').trim());
+      if (url.protocol !== 'https:' && url.protocol !== 'http:') return null;
+      return url;
+    } catch {
+      return null;
+    }
+  }
+
+  function isYouTubeHost(host) {
+    return host === 'youtu.be' || host.endsWith('.youtu.be') ||
+      host === 'youtube.com' || host.endsWith('.youtube.com');
+  }
+
+  function getExternalEmbed(url) {
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname;
+    const pathParts = path.replace(/\/+$/, '').split('/').filter(Boolean);
+
+    if (isYouTubeHost(host)) {
+      const listId = url.searchParams.get('list');
+      const shortHost = host === 'youtu.be' || host.endsWith('.youtu.be');
+      let videoId = '';
+      if (shortHost) videoId = pathParts[0] || '';
+      else if (url.searchParams.get('v')) videoId = url.searchParams.get('v');
+      else if (['embed','shorts','live','v'].includes(pathParts[0])) videoId = pathParts[1] || '';
+
+      if (listId && (!videoId || /\/playlist\/?$/.test(path))) {
+        return {kind:'frame',title:'Playlist do YouTube',src:'https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(listId)+'&autoplay=1'};
+      }
+      if (videoId && /^[a-zA-Z0-9_-]{6,}$/.test(videoId)) {
+        const params = new URLSearchParams({autoplay:'1',rel:'0'});
+        if (listId) params.set('list',listId);
+        return {kind:'frame',title:'YouTube',src:'https://www.youtube-nocookie.com/embed/'+encodeURIComponent(videoId)+'?'+params.toString()};
+      }
+      if (listId) return {kind:'frame',title:'Playlist do YouTube',src:'https://www.youtube-nocookie.com/embed/videoseries?list='+encodeURIComponent(listId)+'&autoplay=1'};
+    }
+
+    if (host === 'vimeo.com' || host.endsWith('.vimeo.com')) {
+      const id = pathParts[pathParts.length - 1];
+      if (id && /^\d+$/.test(id)) return {kind:'frame',title:'Vimeo',src:'https://player.vimeo.com/video/'+id+'?autoplay=1'};
+    }
+
+    if (host === 'dai.ly') {
+      const id = pathParts[0];
+      if (id) return {kind:'frame',title:'Dailymotion',src:'https://www.dailymotion.com/embed/video/'+encodeURIComponent(id)+'?autoplay=1'};
+    }
+    if (host === 'dailymotion.com' || host.endsWith('.dailymotion.com')) {
+      const match = path.match(/\/video\/([a-zA-Z0-9]+)/);
+      if (match) return {kind:'frame',title:'Dailymotion',src:'https://www.dailymotion.com/embed/video/'+encodeURIComponent(match[1])+'?autoplay=1'};
+    }
+
+    if (host === 'open.spotify.com') {
+      const match = path.match(/\/(track|album|playlist|episode|show)\/([a-zA-Z0-9]+)/);
+      if (match) return {kind:'frame',title:'Spotify',src:'https://open.spotify.com/embed/'+match[1]+'/'+match[2]+'?utm_source=generator'};
+    }
+
+    if (host === 'soundcloud.com' || host.endsWith('.soundcloud.com')) {
+      return {kind:'frame',title:'SoundCloud',src:'https://w.soundcloud.com/player/?url='+encodeURIComponent(url.href)+'&auto_play=true&visual=true'};
+    }
+
+    if (host === 'music.apple.com') {
+      const embedUrl = new URL(url.href);
+      embedUrl.hostname = 'embed.music.apple.com';
+      return {kind:'frame',title:'Apple Music',src:embedUrl.href};
+    }
+
+    if (host === 'twitch.tv' || host.endsWith('.twitch.tv') || host === 'clips.twitch.tv') {
+      const parent = location.hostname || 'pedrowilker.github.io';
+      if (host === 'clips.twitch.tv' && pathParts[0]) {
+        return {kind:'frame',title:'Twitch Clip',src:'https://clips.twitch.tv/embed?clip='+encodeURIComponent(pathParts[0])+'&parent='+encodeURIComponent(parent)+'&autoplay=true'};
+      }
+      if (pathParts[0] === 'videos' && pathParts[1]) {
+        return {kind:'frame',title:'Twitch',src:'https://player.twitch.tv/?video=v'+encodeURIComponent(pathParts[1])+'&parent='+encodeURIComponent(parent)+'&autoplay=true'};
+      }
+      if (pathParts[0] === 'clip' && pathParts[1]) {
+        return {kind:'frame',title:'Twitch Clip',src:'https://clips.twitch.tv/embed?clip='+encodeURIComponent(pathParts[1])+'&parent='+encodeURIComponent(parent)+'&autoplay=true'};
+      }
+      if (pathParts[0] && !['directory','downloads','settings','subscriptions'].includes(pathParts[0])) {
+        return {kind:'frame',title:'Twitch',src:'https://player.twitch.tv/?channel='+encodeURIComponent(pathParts[0])+'&parent='+encodeURIComponent(parent)+'&autoplay=true'};
+      }
+    }
+
+    if (host === 'drive.google.com' && /\/file\/d\/([a-zA-Z0-9_-]+)/.test(path)) {
+      const match = path.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+      const resourceKey = url.searchParams.get('resourcekey') || '';
+      const src = 'https://drive.google.com/file/d/'+encodeURIComponent(match[1])+'/preview'+(resourceKey?'?resourcekey='+encodeURIComponent(resourceKey):'');
+      return {kind:'frame',title:'Google Drive',src};
+    }
+    if (host === 'docs.google.com') {
+      const match = path.match(/\/(document|spreadsheets|presentation|drawings)\/d\/([a-zA-Z0-9_-]+)/);
+      if (match) return {kind:'frame',title:'Google Docs',src:'https://docs.google.com/'+match[1]+'/d/'+encodeURIComponent(match[2])+'/preview'};
+    }
+
+    const pathname = url.pathname.toLowerCase();
+    if (/\.m3u8$/.test(pathname)) return {kind:'hls',title:'Transmissão HLS',src:url.href};
+    if (/\.(mp4|m4v|webm|ogv|ogg|mov|mkv)$/.test(pathname)) return {kind:'video',title:'Vídeo',src:url.href};
+    if (/\.(mp3|m4a|aac|wav|flac|opus|oga)$/.test(pathname)) return {kind:'audio',title:'Áudio',src:url.href};
+
+    return {kind:'frame',title:host,src:url.href,generic:true};
+  }
+
+  function resetExternalPlayer() {
+    externalLoadSequence += 1;
+    if (activeHlsPlayer) {
+      try { activeHlsPlayer.destroy(); } catch {}
+      activeHlsPlayer = null;
+    }
+    externalPlayerStage.replaceChildren();
+    externalPlayerMessage.hidden = true;
+    externalPlayerMessage.textContent = '';
+  }
+
+  function showExternalNotice(text) {
+    externalPlayerMessage.textContent = text;
+    externalPlayerMessage.hidden = false;
+  }
+
+  function loadHlsLibrary() {
+    if (window.Hls) return Promise.resolve(window.Hls);
+    if (window.__nexusHlsPromise) return window.__nexusHlsPromise;
+    window.__nexusHlsPromise = new Promise((resolve,reject) => {
+      const scriptTag = document.createElement('script');
+      scriptTag.src = 'https://cdn.jsdelivr.net/npm/hls.js@1/dist/hls.min.js';
+      scriptTag.async = true;
+      scriptTag.onload = () => window.Hls ? resolve(window.Hls) : reject(new Error('HLS indisponível'));
+      scriptTag.onerror = () => reject(new Error('Falha ao carregar HLS'));
+      document.head.append(scriptTag);
+      setTimeout(() => reject(new Error('Tempo esgotado')), 10000);
+    });
+    return window.__nexusHlsPromise;
+  }
+
+  async function showExternalContent(rawValue) {
+    const url = getSafeHttpUrl(rawValue);
+    if (!url) {
+      showMessage('Cole um link válido de vídeo, playlist, áudio ou pasta do Google Drive.');
+      return;
+    }
+
+    resetExternalPlayer();
+    externalPlayer.hidden = false;
+    externalPlayerTitle.textContent = 'Reproduzindo: ' + url.hostname.replace(/^www\./,'');
+    externalPlayerOpen.href = url.href;
+    externalPlayerOpen.hidden = false;
+    list.replaceChildren();
+    musicPlayer.hidden = true;
+    setMusicQueue([]);
+    summary.hidden = true;
+    empty.hidden = true;
+    message.hidden = true;
+    loading.hidden = true;
+    backButton.hidden = true;
+
+    const requestId = externalLoadSequence;
+    const embed = getExternalEmbed(url);
+
+    if (embed.kind === 'video' || embed.kind === 'audio' || embed.kind === 'hls') {
+      const mediaElement = document.createElement(embed.kind === 'audio' ? 'audio' : 'video');
+      mediaElement.className = 'external-media-element';
+      mediaElement.controls = true;
+      mediaElement.autoplay = true;
+      mediaElement.preload = 'metadata';
+      mediaElement.playsInline = true;
+      if (embed.kind !== 'hls') mediaElement.src = embed.src;
+      attachMediaError(mediaElement);
+      externalPlayerStage.append(mediaElement);
+
+      if (embed.kind === 'hls') {
+        if (mediaElement.canPlayType('application/vnd.apple.mpegurl')) {
+          mediaElement.src = embed.src;
+        } else {
+          showExternalNotice('Preparando a transmissão…');
+          try {
+            const Hls = await loadHlsLibrary();
+            if (requestId !== externalLoadSequence) return;
+            if (Hls.isSupported()) {
+              activeHlsPlayer = new Hls();
+              activeHlsPlayer.loadSource(embed.src);
+              activeHlsPlayer.attachMedia(mediaElement);
+              activeHlsPlayer.on(Hls.Events.ERROR, (_event,data) => {
+                if (data && data.fatal) showExternalNotice('Não foi possível reproduzir a transmissão. Use “Abrir original”.');
+              });
+            } else {
+              showExternalNotice('Este navegador não oferece suporte a esta transmissão. Use “Abrir original”.');
+            }
+          } catch {
+            if (requestId === externalLoadSequence) showExternalNotice('Não foi possível preparar esta transmissão. Use “Abrir original”.');
+          }
+        }
+      }
+      try { await mediaElement.play(); } catch {}
+      return;
+    }
+
+    const frame = document.createElement('iframe');
+    frame.className = 'external-frame';
+    frame.src = embed.src;
+    frame.title = embed.title || 'Conteúdo externo';
+    frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen; clipboard-write; web-share';
+    frame.allowFullscreen = true;
+    frame.referrerPolicy = 'strict-origin-when-cross-origin';
+    frame.loading = 'eager';
+    externalPlayerStage.append(frame);
+    if (embed.generic) showExternalNotice('Se esta plataforma bloquear a reprodução incorporada, use “Abrir original”.');
+  }
+
   function formatSize(bytes) {
     const value = Number(bytes);
     if (!Number.isFinite(value) || value < 0) return '';
@@ -502,6 +719,7 @@
 
   function renderFiles(files) {
     list.replaceChildren();
+    externalPlayer.hidden = true;
     message.hidden = true;
     const audioFiles = files.filter(isAudio);
     setMusicQueue(audioFiles);
@@ -518,6 +736,7 @@
   }
 
   async function loadFolder(folder) {
+    externalPlayer.hidden = true;
     if (!folder || !folder.id) {
       showMessage('Link inválido. Use uma pasta do Google Drive.');
       return;
@@ -556,15 +775,21 @@
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const folder = normalizeFolderReference(input.value);
+    const rawValue = input.value.trim();
     input.value = '';
-    if (!folder) {
-      cancelCurrentRequest();
-      showMessage('Link inválido. Use uma pasta do Google Drive.');
+    cancelCurrentRequest();
+
+    const folder = normalizeFolderReference(rawValue);
+    if (folder) {
+      if (currentFolder && currentFolder.id !== folder.id) navigationStack.push(currentFolder);
+      externalPlayer.hidden = true;
+      loadFolder(folder);
       return;
     }
-    if (currentFolder && currentFolder.id !== folder.id) navigationStack.push(currentFolder);
-    loadFolder(folder);
+
+    navigationStack.length = 0;
+    currentFolder = null;
+    showExternalContent(rawValue);
   });
 
   backButton.addEventListener('click', () => {
@@ -576,7 +801,4 @@
   // Nunca preencher ou persistir o link pesquisado. A pesquisa começa vazia a cada abertura.
   input.value = '';
   loading.hidden = true;
-  if (!cfg.driveApiKey || cfg.driveApiKey.startsWith('COLE_')) {
-    showMessage('Biblioteca indisponível.');
-  }
 })();

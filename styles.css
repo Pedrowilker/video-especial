@@ -328,3 +328,23 @@ body.watch-page::before, body.watch-page::after { display:none !important; }
   backdrop-filter:blur(5px) !important;
   -webkit-backdrop-filter:blur(5px) !important;
 }
+
+
+/* Reprodutor universal para vídeos, música e playlists */
+.external-player{display:grid;gap:12px;padding:16px;border:1px solid rgba(239,232,250,.16);border-radius:18px;background:rgba(8,7,12,.62);box-shadow:0 16px 42px rgba(0,0,0,.25)}
+.external-player[hidden]{display:none}
+.external-player-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.external-player-heading h2{margin:0;min-width:0;overflow-wrap:anywhere;color:#f7f3fa;font-size:15px}
+.external-player-open{flex:0 0 auto;color:#f28b9a;font-size:11px;text-decoration:none;font-weight:700}
+.external-player-open:hover{text-decoration:underline;color:#ffd2d8}
+.external-player-stage{position:relative;display:grid;place-items:center;min-height:100px;overflow:hidden;border-radius:12px;background:#050508}
+.external-frame{display:block;width:100%;height:clamp(280px,58vw,620px);border:0;background:#050508}
+.external-media-element{display:block;width:100%;max-height:75vh;aspect-ratio:16/9;background:#030304;object-fit:contain}
+audio.external-media-element{height:70px;max-height:none;aspect-ratio:auto}
+.external-player-message{margin:0;padding:9px 11px;border:1px solid rgba(213,71,91,.18);border-radius:9px;background:rgba(57,14,25,.62);color:#ffdce1;font-size:11px;line-height:1.5}
+.external-player-message[hidden]{display:none}
+@media(max-width:760px){.external-player{padding:12px}.external-player-heading h2{font-size:13px}.external-frame{height:clamp(220px,62vw,420px)}}
+
+/* Fundo mais nítido: retira o desfoque do painel e reduz a camada escura */
+.watch-shell{background:rgba(9,8,13,.13) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+body.watch-page{background-image:linear-gradient(90deg,rgba(4,4,8,.12),rgba(4,4,8,.04) 45%,rgba(4,4,8,.16)),linear-gradient(0deg,rgba(4,4,8,.22),rgba(4,4,8,.02) 55%,rgba(4,4,8,.12)),url("./assets/supernatural-background.jpg") !important}

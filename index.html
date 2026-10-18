@@ -7,9 +7,9 @@
   <meta name="description" content="Biblioteca de arquivos">
   <title>Biblioteca</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261018-9">
+  <link rel="stylesheet" href="styles.css?v=20261018-10">
   <script src="config.js?v=20261018-8"></script>
-  <script defer src="script.js?v=20261018-9"></script>
+  <script defer src="script.js?v=20261018-10"></script>
 </head>
 <body class="watch-page">
   <main class="watch-shell">
@@ -21,7 +21,7 @@
       <div class="folder-form-row">
         <input id="folder-input" name="folder" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true"
           aria-label="Link da pasta do Google Drive"
-          placeholder="Cole o link da pasta do Google Drive" required>
+          placeholder="Cole o link de uma pasta, vídeo ou playlist" required>
         <button id="load-folder-button" type="submit" class="folder-submit">Abrir</button>
       </div>
     </form>
@@ -37,6 +37,16 @@
       <p id="empty-message">Nenhum arquivo encontrado.</p>
     </div>
 
+
+
+    <section id="external-player" class="external-player" aria-label="Reprodutor de vídeo ou playlist" hidden>
+      <div class="external-player-heading">
+        <h2 id="external-player-title">Reprodutor</h2>
+        <a id="external-player-open" class="external-player-open" href="#" target="_blank" rel="noopener noreferrer">Abrir original ↗</a>
+      </div>
+      <div id="external-player-stage" class="external-player-stage"></div>
+      <p id="external-player-message" class="external-player-message" role="status" hidden></p>
+    </section>
 
     <section id="music-player" class="music-player" aria-label="Player de músicas" hidden>
       <div class="music-player-heading">
