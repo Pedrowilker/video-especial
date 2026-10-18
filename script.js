@@ -47,6 +47,7 @@
   }
 
   function showMessage(text) {
+    resetExternalPlayer();
     loading.hidden = true;
     empty.hidden = true;
     message.textContent = text;
@@ -476,11 +477,15 @@
       }
     }
 
-    if (host === 'drive.google.com' && /\/file\/d\/([a-zA-Z0-9_-]+)/.test(path)) {
+    if (host === 'drive.google.com') {
       const match = path.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
-      const resourceKey = url.searchParams.get('resourcekey') || '';
-      const src = 'https://drive.google.com/file/d/'+encodeURIComponent(match[1])+'/preview'+(resourceKey?'?resourcekey='+encodeURIComponent(resourceKey):'');
-      return {kind:'frame',title:'Google Drive',src};
+      const legacyId = /\/open\/?$/.test(path) ? url.searchParams.get('id') : '';
+      const fileId = match ? match[1] : (legacyId || '');
+      if (fileId) {
+        const resourceKey = url.searchParams.get('resourcekey') || '';
+        const src = 'https://drive.google.com/file/d/'+encodeURIComponent(fileId)+'/preview'+(resourceKey?'?resourcekey='+encodeURIComponent(resourceKey):'');
+        return {kind:'frame',title:'Google Drive',src};
+      }
     }
     if (host === 'docs.google.com') {
       const match = path.match(/\/(document|spreadsheets|presentation|drawings)\/d\/([a-zA-Z0-9_-]+)/);
@@ -736,6 +741,7 @@
   }
 
   async function loadFolder(folder) {
+    resetExternalPlayer();
     externalPlayer.hidden = true;
     if (!folder || !folder.id) {
       showMessage('Link inválido. Use uma pasta do Google Drive.');
