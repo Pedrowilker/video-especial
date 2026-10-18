@@ -1,28 +1,30 @@
 (() => {
-  const config = window.PAGE_CONFIG || {};
-  const video = document.getElementById("video");
-  const placeholder = document.getElementById("video-placeholder");
-  const title = document.getElementById("page-title");
-  const message = document.getElementById("intro-message");
-  const caption = document.getElementById("video-caption");
-
-  if (config.title) {
-    document.title = config.title.replace(/\.$/, "");
-    title.textContent = config.title;
+  const cfg = window.APP_CONFIG || {};
+  const loading = document.getElementById('loading-state');
+  const empty = document.getElementById('empty-state');
+  const player = document.getElementById('video-player');
+  const message = document.getElementById('status-message');
+  const ready = cfg.supabaseUrl && !cfg.supabaseUrl.startsWith('COLE_') &&
+    cfg.supabaseAnonKey && !cfg.supabaseAnonKey.startsWith('COLE_');
+  const showEmpty = (text) => {
+    loading.hidden = true; player.hidden = true; empty.hidden = false;
+    if (text) { message.textContent = text; message.hidden = false; }
+  };
+  if (!ready || !window.supabase) { showEmpty(); return; }
+  const client = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnonKey);
+  async function init() {
+    try {
+      const { data, error } = await client.from('videos').select('id, path, created_at').order('created_at', { ascending: false }).limit(1).maybeSingle();
+      if (error) throw error;
+      if (!data) { showEmpty(); return; }
+      const { data: urlData } = client.storage.from(cfg.bucket || 'videos').getPublicUrl(data.path);
+      player.src = urlData.publicUrl;
+      player.hidden = false; loading.hidden = true; empty.hidden = true;
+      player.addEventListener('error', () => {
+        message.textContent = 'Não foi possível reproduzir este vídeo.';
+        message.hidden = false;
+      }, { once: true });
+    } catch (err) { console.error(err); showEmpty('Não foi possível carregar o vídeo.'); }
   }
-  if (config.message) message.textContent = config.message;
-  if (config.caption) caption.textContent = config.caption;
-
-  const url = (config.videoUrl || "").trim();
-  if (url) {
-    video.src = url;
-    if (config.posterUrl) video.poster = config.posterUrl;
-    video.addEventListener("loadedmetadata", () => { placeholder.hidden = true; });
-    video.addEventListener("canplay", () => { placeholder.hidden = true; });
-    video.addEventListener("error", () => {
-      placeholder.hidden = false;
-      placeholder.querySelector("strong").textContent = "Não foi possível carregar o vídeo";
-      placeholder.querySelector("span").textContent = "Confira o endereço do vídeo em config.js";
-    });
-  }
+  init();
 })();
