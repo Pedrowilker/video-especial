@@ -4,21 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#09090d">
-  <meta name="description" content="Assista aos vídeos disponíveis">
-  <title>Vídeos</title>
+  <meta name="description" content="Explore arquivos públicos de pastas do Google Drive">
+  <title>Biblioteca de arquivos</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261018-2">
-  <script src="config.js?v=20261018-2"></script>
-  <script defer src="script.js?v=20261018-2"></script>
+  <link rel="stylesheet" href="styles.css?v=20261018-3">
+  <script src="config.js?v=20261018-3"></script>
+  <script defer src="script.js?v=20261018-3"></script>
 </head>
 <body class="watch-page">
   <main class="watch-shell">
     <header class="site-header">
-      <h1 class="site-title">Vídeos</h1>
-      <p class="site-subtitle">Biblioteca de vídeos</p>
+      <h1 class="site-title">Biblioteca</h1>
+      <p class="site-subtitle">Cole o link de uma pasta do Google Drive para explorar os arquivos.</p>
     </header>
-    <div id="loading-state" class="loading-state"><span class="spinner"></span></div>
-    <div id="empty-state" class="empty-state" hidden><div class="empty-icon" aria-hidden="true">▶</div><p>Nenhum vídeo encontrado nesta pasta.</p></div>
+
+    <form id="folder-form" class="folder-form">
+      <label for="folder-input">Link da pasta do Google Drive</label>
+      <div class="folder-form-row">
+        <input id="folder-input" name="folder" type="text" autocomplete="url"
+          placeholder="https://drive.google.com/drive/folders/..." required>
+        <button id="load-folder-button" type="submit" class="folder-submit">Exibir conteúdo</button>
+      </div>
+      <p class="folder-hint">Funciona com pastas do Google Drive que você pode acessar e que permitem listagem pela API. Pastas privadas podem não aparecer.</p>
+    </form>
+
+    <div class="folder-navigation">
+      <button id="back-folder-button" type="button" class="folder-back" hidden>← Voltar</button>
+      <p id="folder-summary" class="folder-summary" aria-live="polite" hidden></p>
+    </div>
+
+    <div id="loading-state" class="loading-state" hidden><span class="spinner"></span></div>
+    <div id="empty-state" class="empty-state" hidden>
+      <div class="empty-icon" aria-hidden="true">▱</div>
+      <p id="empty-message">Nenhum arquivo encontrado nesta pasta.</p>
+    </div>
     <div id="public-video-list" class="public-video-list"></div>
     <p id="status-message" class="status-message" role="status" hidden></p>
   </main>
