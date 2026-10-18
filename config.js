@@ -1,13 +1,7 @@
-/*
-  PERSONALIZE AQUI:
-  1) Cole no campo VIDEO_URL o endereço direto do seu vídeo MP4 hospedado na internet.
-  2) Edite os textos entre aspas como preferir.
-  Dica: para testar no computador, coloque video.mp4 nesta pasta e use "video.mp4".
-*/
-window.PAGE_CONFIG = {
-  title: "Uma mensagem para você.",
-  message: "Preparei este pequeno momento. Encontre um lugar tranquilo, aperte o play e aproveite.",
-  caption: "Quatro minutos que valem a pausa.",
-  videoUrl: "video.mp4",
-  posterUrl: ""
+// Configure estes valores em Supabase > Project Settings > API.
+// Use somente a chave pública/anon. Nunca use a chave service_role no navegador.
+window.APP_CONFIG = {
+  supabaseUrl: "COLE_A_URL_DO_SEU_PROJETO",
+  supabaseAnonKey: "COLE_SUA_CHAVE_PUBLICA_ANON",
+  bucket: "videos"
 };
