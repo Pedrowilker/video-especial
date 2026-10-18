@@ -1,7 +1,6 @@
-// Configure estes valores em Supabase > Project Settings > API.
-// Use somente a chave pública/anon. Nunca use a chave service_role no navegador.
+// Configuração da biblioteca de vídeos do Google Drive.
+// A chave da API é pública e deve ser restringida ao domínio do site no Google Cloud.
 window.APP_CONFIG = {
-  supabaseUrl: "COLE_A_URL_DO_SEU_PROJETO",
-  supabaseAnonKey: "COLE_SUA_CHAVE_PUBLICA_ANON",
-  bucket: "videos"
+  driveFolderId: "1Z_AZNMk9PK1nwzN2l19j_cEoUu75zc3_",
+  driveApiKey: "COLE_SUA_CHAVE_DA_API_DO_GOOGLE"
 };
