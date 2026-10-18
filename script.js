@@ -11,8 +11,17 @@
   const backButton = document.getElementById('back-folder-button');
   const summary = document.getElementById('folder-summary');
 
-  let currentFolderId = '';
+  let currentFolder = null;
   const navigationStack = [];
+  let activeController = null;
+  let requestSequence = 0;
+
+  function cancelCurrentRequest() {
+    requestSequence += 1;
+    if (activeController) activeController.abort();
+    activeController = null;
+    setLoading(false);
+  }
 
   function showMessage(text) {
     loading.hidden = true;
@@ -21,12 +30,13 @@
     message.hidden = false;
     summary.hidden = true;
     list.replaceChildren();
+    loadButton.textContent = 'Abrir';
   }
 
   function setLoading(isLoading) {
     loading.hidden = !isLoading;
-    loadButton.disabled = isLoading;
-    loadButton.textContent = isLoading ? 'Carregando…' : 'Exibir conteúdo';
+    loadButton.textContent = isLoading ? 'Carregando…' : 'Abrir';
+    // O botão e o campo continuam ativos para permitir trocar o link durante a consulta.
     if (isLoading) {
       message.hidden = true;
       empty.hidden = true;
@@ -35,33 +45,55 @@
     }
   }
 
-  // Aceita URL normal, URL com /u/0/ e ID da pasta.
-  function normalizeFolderId(value) {
-    const inputValue = String(value || '').trim();
-    if (!inputValue) return '';
+  function normalizeFolderReference(value) {
+    const raw = String(value || '').trim();
+    if (!raw) return null;
 
-    const directId = inputValue.match(/^[a-zA-Z0-9_-]{10,}$/);
-    if (directId) return directId[0];
+    if (/^[a-zA-Z0-9_-]{10,}$/.test(raw)) {
+      return { id: raw, resourceKey: '' };
+    }
+
+    let urlText = raw;
+    if (/^(drive\.google\.com|docs\.google\.com)\//i.test(urlText)) {
+      urlText = 'https://' + urlText;
+    }
 
     try {
-      const url = new URL(inputValue);
+      const url = new URL(urlText);
       const host = url.hostname.toLowerCase();
-      if (host !== 'drive.google.com' && host !== 'docs.google.com') return '';
-      const match = url.pathname.match(/folders\/([a-zA-Z0-9_-]+)/);
-      return match ? match[1] : '';
+      if (host !== 'drive.google.com' && host !== 'docs.google.com') return null;
+
+      const folderMatch = url.pathname.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+      let id = folderMatch ? folderMatch[1] : '';
+
+      // Também aceita links antigos do Drive no formato /open?id=...
+      if (!id && /\/open\/?$/.test(url.pathname)) {
+        id = url.searchParams.get('id') || '';
+      }
+      if (!id) return null;
+
+      return {
+        id,
+        resourceKey: url.searchParams.get('resourcekey') || url.searchParams.get('resourceKey') || ''
+      };
     } catch {
-      return '';
+      return null;
     }
   }
 
-  async function getFolderFiles(folderId) {
+  function folderUrl(folder) {
+    const url = 'https://drive.google.com/drive/folders/' + encodeURIComponent(folder.id);
+    return folder.resourceKey ? url + '?resourcekey=' + encodeURIComponent(folder.resourceKey) : url;
+  }
+
+  async function getFolderFiles(folder, controller) {
     const files = [];
     let pageToken = '';
 
     do {
       const params = new URLSearchParams({
-        q: "'" + folderId + "' in parents and trashed = false",
-        fields: 'nextPageToken,files(id,name,mimeType,size,modifiedTime,webViewLink,iconLink)',
+        q: "'" + folder.id + "' in parents and trashed = false",
+        fields: 'nextPageToken,files(id,name,mimeType,size,modifiedTime,webViewLink,iconLink,resourceKey)',
         pageSize: '100',
         orderBy: 'folder,name',
         key: cfg.driveApiKey,
@@ -70,23 +102,53 @@
       });
       if (pageToken) params.set('pageToken', pageToken);
 
-      const response = await fetch('https://www.googleapis.com/drive/v3/files?' + params.toString());
+      const headers = {};
+      if (folder.resourceKey) {
+        headers['X-Goog-Drive-Resource-Keys'] = folder.id + '/' + folder.resourceKey;
+      }
+
+      let response;
+      try {
+        const timeoutId = setTimeout(() => controller.abort(), 18000);
+        try {
+          response = await fetch('https://www.googleapis.com/drive/v3/files?' + params.toString(), {
+            method: 'GET',
+            headers,
+            signal: controller.signal
+          });
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      } catch (error) {
+        if (controller.signal.aborted) {
+          throw new Error('A consulta demorou demais. Tente novamente.');
+        }
+        if (error && error.name === 'TypeError') {
+          throw new Error('Falha de conexão com o Google Drive.');
+        }
+        throw error;
+      }
+
       let result;
       try {
         result = await response.json();
       } catch {
-        throw new Error('O Google não retornou uma resposta válida. Confira a Google Drive API.');
+        throw new Error('O Google Drive retornou uma resposta inválida.');
       }
 
       if (!response.ok || result.error) {
-        const apiError = result.error || {};
-        if (response.status === 403) {
-          throw new Error('O Google recusou a consulta. Confira se a Google Drive API está ativada e se a chave está restrita às APIs e ao site corretos.');
+        const apiMessage = result.error?.message || '';
+        if (response.status === 400) {
+          throw new Error('Esse link não pôde ser consultado. Confira se é um link de pasta.');
+        }
+        if (response.status === 401 || response.status === 403) {
+          throw new Error('O Google Drive não autorizou o acesso a essa pasta.');
         }
         if (response.status === 404) {
-          throw new Error('A pasta não foi encontrada ou você não tem permissão para listá-la. Confira o link e o compartilhamento.');
+          throw new Error('Pasta não encontrada ou sem permissão de leitura.');
         }
-        throw new Error(apiError.message || 'Não foi possível listar o conteúdo desta pasta.');
+        console.error('Google Drive API:', response.status, apiMessage);
+        throw new Error('Não foi possível abrir essa pasta.');
       }
 
       files.push(...(result.files || []));
@@ -113,9 +175,9 @@
     if (mime === 'application/pdf') return 'PDF';
     if (mime.startsWith('audio/')) return 'Áudio';
     if (mime.startsWith('text/')) return 'Texto';
-    if (mime.startsWith('application/vnd.google-apps.document')) return 'Documento Google';
-    if (mime.startsWith('application/vnd.google-apps.spreadsheet')) return 'Planilha Google';
-    if (mime.startsWith('application/vnd.google-apps.presentation')) return 'Apresentação Google';
+    if (mime === 'application/vnd.google-apps.document') return 'Documento Google';
+    if (mime === 'application/vnd.google-apps.spreadsheet') return 'Planilha Google';
+    if (mime === 'application/vnd.google-apps.presentation') return 'Apresentação Google';
     if (mime.startsWith('application/vnd.google-apps')) return 'Arquivo Google';
     return 'Arquivo';
   }
@@ -127,8 +189,7 @@
     if (mime === 'application/vnd.google-apps.spreadsheet') return 'https://docs.google.com/spreadsheets/d/' + id + '/preview';
     if (mime === 'application/vnd.google-apps.presentation') return 'https://docs.google.com/presentation/d/' + id + '/preview';
     if (mime === 'application/vnd.google-apps.drawing') return 'https://docs.google.com/drawings/d/' + id + '/preview';
-    if (mime.startsWith('video/') || mime.startsWith('image/') || mime === 'application/pdf' ||
-        mime.startsWith('application/vnd.google-apps')) {
+    if (mime.startsWith('video/') || mime.startsWith('image/') || mime === 'application/pdf') {
       return 'https://drive.google.com/file/d/' + id + '/preview';
     }
     return '';
@@ -140,7 +201,7 @@
     link.href = file.webViewLink || ('https://drive.google.com/file/d/' + encodeURIComponent(file.id) + '/view');
     link.target = '_blank';
     link.rel = 'noopener noreferrer';
-    link.textContent = 'Abrir no Google Drive';
+    link.textContent = 'Abrir arquivo';
     return link;
   }
 
@@ -163,7 +224,6 @@
       if (!Number.isNaN(date.getTime())) parts.push(date.toLocaleDateString('pt-BR'));
     }
     meta.textContent = parts.join(' · ');
-
     card.append(title, meta);
 
     if (isFolder) {
@@ -172,8 +232,8 @@
       openFolder.className = 'folder-open-button';
       openFolder.textContent = 'Abrir pasta';
       openFolder.addEventListener('click', () => {
-        if (currentFolderId && currentFolderId !== file.id) navigationStack.push(currentFolderId);
-        loadFolder(file.id, false);
+        if (currentFolder && currentFolder.id !== file.id) navigationStack.push(currentFolder);
+        loadFolder({ id: file.id, resourceKey: file.resourceKey || '' }, true);
       });
       card.append(openFolder);
       return card;
@@ -192,11 +252,6 @@
       frame.referrerPolicy = 'strict-origin-when-cross-origin';
       frameWrap.append(frame);
       card.append(frameWrap);
-    } else {
-      const note = document.createElement('p');
-      note.className = 'drive-file-note';
-      note.textContent = 'Este tipo de arquivo não tem pré-visualização incorporada. Use o botão abaixo para abrir.';
-      card.append(note);
     }
 
     card.append(makeOpenLink(file));
@@ -205,73 +260,80 @@
 
   function renderFiles(files) {
     list.replaceChildren();
-    loading.hidden = true;
     message.hidden = true;
     empty.hidden = files.length > 0;
-
     if (!files.length) {
-      emptyMessage.textContent = 'Esta pasta está vazia ou não contém arquivos que possam ser listados.';
+      emptyMessage.textContent = 'Nenhum arquivo encontrado.';
       summary.hidden = true;
       return;
     }
 
     for (const file of files) list.append(makeFileCard(file));
-    summary.textContent = files.length + (files.length === 1 ? ' item encontrado' : ' itens encontrados');
+    summary.textContent = files.length + (files.length === 1 ? ' item' : ' itens');
     summary.hidden = false;
   }
 
-  async function loadFolder(folderId, updateInput = true) {
-    if (!folderId) {
-      showMessage('Cole um link válido de uma pasta do Google Drive.');
+  async function loadFolder(folder, updateInput = true) {
+    if (!folder || !folder.id) {
+      showMessage('Link inválido. Use uma pasta do Google Drive.');
       return;
     }
     if (!cfg.driveApiKey || cfg.driveApiKey.startsWith('COLE_')) {
-      showMessage('A chave da Google Drive API não está configurada. Confira config.js.');
+      showMessage('Biblioteca indisponível.');
       return;
     }
 
-    currentFolderId = folderId;
-    if (updateInput) input.value = 'https://drive.google.com/drive/folders/' + folderId;
+    if (activeController) activeController.abort();
+    const controller = new AbortController();
+    activeController = controller;
+    const thisRequest = ++requestSequence;
+    currentFolder = folder;
+
+    if (updateInput) input.value = folderUrl(folder);
     backButton.hidden = navigationStack.length === 0;
     setLoading(true);
 
     try {
-      const files = await getFolderFiles(folderId);
+      const files = await getFolderFiles(folder, controller);
+      if (thisRequest !== requestSequence) return;
       renderFiles(files);
-      backButton.hidden = navigationStack.length === 0;
     } catch (error) {
-      console.error('Falha ao carregar pasta do Google Drive:', error);
-      showMessage(error.message || 'Não foi possível carregar esta pasta.');
-      backButton.hidden = navigationStack.length === 0;
+      if (thisRequest !== requestSequence) return;
+      console.error('Falha ao consultar a pasta do Google Drive:', error);
+      showMessage(error.message || 'Não foi possível abrir essa pasta.');
+    } finally {
+      if (thisRequest === requestSequence) {
+        activeController = null;
+        setLoading(false);
+        backButton.hidden = navigationStack.length === 0;
+      }
     }
   }
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    const folderId = normalizeFolderId(input.value);
-    if (!folderId) {
-      showMessage('Esse link não parece ser uma pasta do Google Drive. Cole o link de compartilhamento da pasta, não de um arquivo individual.');
+    const folder = normalizeFolderReference(input.value);
+    if (!folder) {
+      cancelCurrentRequest();
+      showMessage('Cole um link válido de uma pasta do Google Drive.');
       return;
     }
-    if (currentFolderId && currentFolderId !== folderId) navigationStack.push(currentFolderId);
-    loadFolder(folderId, true);
+    if (currentFolder && currentFolder.id !== folder.id) navigationStack.push(currentFolder);
+    loadFolder(folder, true);
   });
 
   backButton.addEventListener('click', () => {
-    const previousFolderId = navigationStack.pop();
-    if (previousFolderId) loadFolder(previousFolderId, true);
+    const previousFolder = navigationStack.pop();
+    if (previousFolder) loadFolder(previousFolder, true);
     backButton.hidden = navigationStack.length === 0;
   });
 
+  const initialFolder = normalizeFolderReference(cfg.driveFolderId);
+  if (initialFolder) input.value = folderUrl(initialFolder);
+
+  // Não carrega a pasta inicial automaticamente: permite colar outro link desde o início.
+  loading.hidden = true;
   if (!cfg.driveApiKey || cfg.driveApiKey.startsWith('COLE_')) {
-    showMessage('A chave da Google Drive API não está configurada. Confira config.js.');
-  } else {
-    const initialFolderId = normalizeFolderId(cfg.driveFolderId);
-    if (initialFolderId) {
-      input.value = 'https://drive.google.com/drive/folders/' + initialFolderId;
-      loadFolder(initialFolderId, false);
-    } else {
-      loading.hidden = true;
-    }
+    showMessage('Biblioteca indisponível.');
   }
 })();
