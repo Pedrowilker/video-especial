@@ -12,9 +12,15 @@
     message.hidden = false;
   };
 
-  const escapeText = (value) => String(value || '').replace(/[&<>"']/g, (char) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[char]));
+  // Aceita tanto o ID quanto o link completo da pasta do Google Drive.
+  function normalizeFolderId(value) {
+    const input = String(value || '').trim();
+    if (!input) return '';
+    const match = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+    return match ? match[1] : input;
+  }
+
+  const folderId = normalizeFolderId(cfg.driveFolderId);
 
   async function getAllVideos() {
     const videos = [];
@@ -22,7 +28,7 @@
 
     do {
       const params = new URLSearchParams({
-        q: "'" + cfg.driveFolderId + "' in parents and trashed = false",
+        q: "'" + folderId + "' in parents and trashed = false",
         fields: 'nextPageToken,files(id,name,mimeType,thumbnailLink,modifiedTime)',
         pageSize: '100',
         orderBy: 'name',
@@ -31,9 +37,15 @@
       if (pageToken) params.set('pageToken', pageToken);
 
       const response = await fetch('https://www.googleapis.com/drive/v3/files?' + params.toString());
-      const result = await response.json();
+      let result;
+      try {
+        result = await response.json();
+      } catch {
+        throw new Error('O Google não retornou uma resposta válida. Confira a ativação da API.');
+      }
       if (!response.ok || result.error) {
-        throw new Error(result.error?.message || 'Não foi possível acessar a pasta do Google Drive.');
+        const apiMessage = result.error?.message || 'Não foi possível acessar a pasta do Google Drive.';
+        throw new Error(apiMessage);
       }
 
       for (const file of (result.files || [])) {
@@ -89,9 +101,12 @@
   }
 
   async function init() {
-    if (!cfg.driveFolderId || !cfg.driveApiKey ||
-        cfg.driveApiKey.startsWith('COLE_')) {
-      showMessage('Falta configurar a chave gratuita da API do Google Drive. Consulte o README do projeto.');
+    if (!folderId) {
+      showMessage('Falta configurar o ID ou link da pasta do Google Drive em config.js.');
+      return;
+    }
+    if (!cfg.driveApiKey || cfg.driveApiKey.startsWith('COLE_')) {
+      showMessage('Falta configurar uma nova chave da Google Drive API em config.js. Veja as instruções no README.');
       return;
     }
 
@@ -99,8 +114,8 @@
       const videos = await getAllVideos();
       renderVideos(videos);
     } catch (error) {
-      console.error(error);
-      showMessage('Não foi possível carregar os vídeos. Verifique a chave da API e se a pasta está compartilhada com “Qualquer pessoa com o link”.');
+      console.error('Erro ao carregar a biblioteca do Google Drive:', error);
+      showMessage('Não foi possível carregar os vídeos. Erro: ' + (error.message || 'falha desconhecida') + ' Confira se a Google Drive API está ativada, se a chave está restrita à API correta e se a pasta permite acesso de leitor a qualquer pessoa com o link.');
     }
   }
 
