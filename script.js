@@ -10,6 +10,22 @@
   const loadButton = document.getElementById('load-folder-button');
   const backButton = document.getElementById('back-folder-button');
   const summary = document.getElementById('folder-summary');
+  const musicPlayer = document.getElementById('music-player');
+  const musicAudio = document.getElementById('music-audio');
+  const musicCurrentTitle = document.getElementById('music-current-title');
+  const musicCurrentMeta = document.getElementById('music-current-meta');
+  const musicOpenDrive = document.getElementById('music-open-drive');
+  const musicError = document.getElementById('music-error');
+  const musicPrevious = document.getElementById('music-previous');
+  const musicToggle = document.getElementById('music-toggle');
+  const musicNext = document.getElementById('music-next');
+  const musicSeek = document.getElementById('music-seek');
+  const musicCurrentTime = document.getElementById('music-current-time');
+  const musicDuration = document.getElementById('music-duration');
+  const musicAutoplay = document.getElementById('music-autoplay-toggle');
+  const musicPlaylist = document.getElementById('music-playlist');
+  let musicQueue = [];
+  let currentTrackIndex = -1;
 
   let currentFolder = null;
   const navigationStack = [];
@@ -158,6 +174,215 @@
     return files;
   }
 
+
+  function isAudio(file) {
+    return String(file.mimeType || '').startsWith('audio/');
+  }
+
+  function formatTime(seconds) {
+    if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+    const minutes = Math.floor(seconds / 60);
+    const remainder = Math.floor(seconds % 60).toString().padStart(2, '0');
+    return minutes + ':' + remainder;
+  }
+
+  function audioUrl(track) {
+    let url = 'https://drive.google.com/uc?export=download&id=' + encodeURIComponent(track.id);
+    if (track.resourceKey) url += '&resourcekey=' + encodeURIComponent(track.resourceKey);
+    return url;
+  }
+
+  function renderMusicPlaylist() {
+    musicPlaylist.replaceChildren();
+    musicQueue.forEach((track, index) => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'music-track-item' + (index === currentTrackIndex ? ' is-current' : '');
+      button.setAttribute('aria-current', index === currentTrackIndex ? 'true' : 'false');
+
+      const number = document.createElement('span');
+      number.className = 'music-track-number';
+      number.textContent = index === currentTrackIndex && !musicAudio.paused ? '♫' : String(index + 1);
+
+      const name = document.createElement('span');
+      name.className = 'music-track-name';
+      name.textContent = track.name || 'Música sem título';
+
+      const type = document.createElement('span');
+      type.className = 'music-track-type';
+      type.textContent = index === currentTrackIndex && !musicAudio.paused ? 'Tocando' : 'Áudio';
+
+      button.append(number, name, type);
+      button.addEventListener('click', () => playTrack(index, true));
+      musicPlaylist.append(button);
+    });
+  }
+
+  function setMusicQueue(tracks) {
+    const previousTrackId = currentTrackIndex >= 0 ? musicQueue[currentTrackIndex]?.id : null;
+    musicQueue = tracks.slice().sort((a, b) => (a.name || '').localeCompare(b.name || '', 'pt-BR', { sensitivity: 'base' }));
+    currentTrackIndex = previousTrackId ? musicQueue.findIndex(track => track.id === previousTrackId) : -1;
+
+    musicPlayer.hidden = musicQueue.length === 0;
+    if (!musicQueue.length) {
+      musicAudio.pause();
+      musicAudio.removeAttribute('src');
+      musicAudio.load();
+      currentTrackIndex = -1;
+      musicCurrentTitle.textContent = 'Selecione uma música';
+      musicCurrentMeta.textContent = 'Sua playlist do Google Drive';
+      musicOpenDrive.hidden = true;
+      musicError.hidden = true;
+      musicPlaylist.replaceChildren();
+      return;
+    }
+
+    if (currentTrackIndex === -1) {
+      musicAudio.pause();
+      musicAudio.removeAttribute('src');
+      musicAudio.load();
+      musicCurrentTitle.textContent = 'Escolha uma música';
+      musicCurrentMeta.textContent = musicQueue.length + (musicQueue.length === 1 ? ' faixa disponível' : ' faixas disponíveis');
+      musicOpenDrive.hidden = true;
+      musicError.hidden = true;
+      musicToggle.textContent = '▶';
+      musicToggle.setAttribute('aria-label', 'Reproduzir');
+      musicSeek.value = '0';
+      musicCurrentTime.textContent = '0:00';
+      musicDuration.textContent = '0:00';
+    }
+    renderMusicPlaylist();
+  }
+
+  async function playTrack(index, startPlayback = true) {
+    if (!musicQueue.length) return;
+    const nextIndex = Math.max(0, Math.min(index, musicQueue.length - 1));
+    const track = musicQueue[nextIndex];
+    if (!track) return;
+
+    currentTrackIndex = nextIndex;
+    musicError.hidden = true;
+    musicError.textContent = '';
+    musicCurrentTitle.textContent = track.name || 'Música sem título';
+    musicCurrentMeta.textContent = formatSize(track.size) || 'Áudio do Google Drive';
+    musicOpenDrive.href = track.webViewLink || ('https://drive.google.com/file/d/' + encodeURIComponent(track.id) + '/view');
+    musicOpenDrive.hidden = false;
+    musicSeek.value = '0';
+    musicCurrentTime.textContent = '0:00';
+    musicDuration.textContent = '0:00';
+
+    musicAudio.pause();
+    musicAudio.src = audioUrl(track);
+    musicAudio.load();
+    renderMusicPlaylist();
+
+    if (startPlayback) {
+      try {
+        await musicAudio.play();
+      } catch (error) {
+        if (error && error.name === 'NotAllowedError') {
+          musicError.textContent = 'Clique em reproduzir para iniciar a música.';
+        } else {
+          musicError.textContent = 'O Google Drive não permitiu tocar este áudio diretamente. Você pode abrir o arquivo no Drive.';
+        }
+        musicError.hidden = false;
+        musicToggle.textContent = '▶';
+        musicToggle.setAttribute('aria-label', 'Reproduzir');
+      }
+    }
+  }
+
+  function playNextTrack() {
+    if (!musicQueue.length) return;
+    if (currentTrackIndex < musicQueue.length - 1) {
+      playTrack(currentTrackIndex + 1, true);
+    } else {
+      musicAudio.pause();
+      musicToggle.textContent = '▶';
+      musicToggle.setAttribute('aria-label', 'Reproduzir');
+      renderMusicPlaylist();
+    }
+  }
+
+  musicToggle.addEventListener('click', async () => {
+    if (!musicQueue.length) return;
+    if (currentTrackIndex < 0) {
+      await playTrack(0, true);
+      return;
+    }
+    if (musicAudio.paused) {
+      try {
+        await musicAudio.play();
+        musicError.hidden = true;
+      } catch {
+        musicError.textContent = 'Não foi possível tocar esta música diretamente. Use “Abrir no Drive”.';
+        musicError.hidden = false;
+      }
+    } else {
+      musicAudio.pause();
+    }
+  });
+
+  musicPrevious.addEventListener('click', () => {
+    if (!musicQueue.length) return;
+    if (musicAudio.currentTime > 3) {
+      musicAudio.currentTime = 0;
+      return;
+    }
+    playTrack(currentTrackIndex <= 0 ? 0 : currentTrackIndex - 1, true);
+  });
+
+  musicNext.addEventListener('click', playNextTrack);
+
+  musicAudio.addEventListener('play', () => {
+    musicToggle.textContent = 'Ⅱ';
+    musicToggle.setAttribute('aria-label', 'Pausar');
+    renderMusicPlaylist();
+  });
+
+  musicAudio.addEventListener('pause', () => {
+    musicToggle.textContent = '▶';
+    musicToggle.setAttribute('aria-label', 'Reproduzir');
+    renderMusicPlaylist();
+  });
+
+  musicAudio.addEventListener('timeupdate', () => {
+    const duration = musicAudio.duration;
+    musicCurrentTime.textContent = formatTime(musicAudio.currentTime);
+    if (Number.isFinite(duration) && duration > 0) {
+      musicDuration.textContent = formatTime(duration);
+      musicSeek.value = String((musicAudio.currentTime / duration) * 100);
+    }
+  });
+
+  musicAudio.addEventListener('loadedmetadata', () => {
+    musicDuration.textContent = formatTime(musicAudio.duration);
+  });
+
+  musicSeek.addEventListener('input', () => {
+    if (Number.isFinite(musicAudio.duration) && musicAudio.duration > 0) {
+      musicAudio.currentTime = (Number(musicSeek.value) / 100) * musicAudio.duration;
+    }
+  });
+
+  musicAudio.addEventListener('ended', () => {
+    if (musicAutoplay.checked) playNextTrack();
+    else {
+      musicToggle.textContent = '▶';
+      musicToggle.setAttribute('aria-label', 'Reproduzir');
+      renderMusicPlaylist();
+    }
+  });
+
+  musicAudio.addEventListener('error', () => {
+    if (currentTrackIndex < 0 || !musicQueue[currentTrackIndex]) return;
+    musicError.textContent = 'Não foi possível tocar este áudio diretamente. Tente “Abrir no Drive”.';
+    musicError.hidden = false;
+    musicToggle.textContent = '▶';
+    musicToggle.setAttribute('aria-label', 'Reproduzir');
+    renderMusicPlaylist();
+  });
+
   function formatSize(bytes) {
     const value = Number(bytes);
     if (!Number.isFinite(value) || value < 0) return '';
@@ -239,6 +464,23 @@
       return card;
     }
 
+
+    if (isAudio(file)) {
+      const actions = document.createElement('div');
+      actions.className = 'music-card-actions';
+      const playButton = document.createElement('button');
+      playButton.type = 'button';
+      playButton.className = 'music-card-play';
+      playButton.textContent = '▶ Tocar música';
+      playButton.addEventListener('click', () => {
+        const trackIndex = musicQueue.findIndex(track => track.id === file.id);
+        if (trackIndex >= 0) playTrack(trackIndex, true);
+      });
+      actions.append(playButton, makeOpenLink(file));
+      card.append(actions);
+      return card;
+    }
+
     const preview = previewUrl(file);
     if (preview) {
       const frameWrap = document.createElement('div');
@@ -261,6 +503,8 @@
   function renderFiles(files) {
     list.replaceChildren();
     message.hidden = true;
+    const audioFiles = files.filter(isAudio);
+    setMusicQueue(audioFiles);
     empty.hidden = files.length > 0;
     if (!files.length) {
       emptyMessage.textContent = 'Nenhum arquivo encontrado.';

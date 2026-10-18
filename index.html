@@ -7,9 +7,9 @@
   <meta name="description" content="Biblioteca de arquivos">
   <title>Biblioteca</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261018-7">
-  <script src="config.js?v=20261018-7"></script>
-  <script defer src="script.js?v=20261018-7"></script>
+  <link rel="stylesheet" href="styles.css?v=20261018-8">
+  <script src="config.js?v=20261018-8"></script>
+  <script defer src="script.js?v=20261018-8"></script>
 </head>
 <body class="watch-page">
   <main class="watch-shell">
@@ -36,6 +36,34 @@
       <div class="empty-icon" aria-hidden="true">▱</div>
       <p id="empty-message">Nenhum arquivo encontrado.</p>
     </div>
+
+
+    <section id="music-player" class="music-player" aria-label="Player de músicas" hidden>
+      <div class="music-player-heading">
+        <div class="music-cover" aria-hidden="true">♫</div>
+        <div class="music-track-details">
+          <p class="music-eyebrow">PLAYER DE MÚSICA</p>
+          <h2 id="music-current-title">Selecione uma música</h2>
+          <p id="music-current-meta">Sua playlist do Google Drive</p>
+        </div>
+        <a id="music-open-drive" class="music-open-drive" href="#" target="_blank" rel="noopener noreferrer" hidden>Abrir no Drive</a>
+      </div>
+      <audio id="music-audio" preload="metadata"></audio>
+      <div id="music-error" class="music-error" role="status" hidden></div>
+      <div class="music-controls">
+        <button id="music-previous" type="button" class="music-control-button" aria-label="Música anterior" title="Música anterior">|◀</button>
+        <button id="music-toggle" type="button" class="music-control-button music-play-button" aria-label="Reproduzir" title="Reproduzir">▶</button>
+        <button id="music-next" type="button" class="music-control-button" aria-label="Próxima música" title="Próxima música">▶|</button>
+      </div>
+      <div class="music-progress">
+        <span id="music-current-time">0:00</span>
+        <input id="music-seek" type="range" min="0" max="100" value="0" step="0.1" aria-label="Posição da música">
+        <span id="music-duration">0:00</span>
+      </div>
+      <label class="music-autoplay"><input id="music-autoplay-toggle" type="checkbox" checked> Reproduzir próxima automaticamente</label>
+      <div id="music-playlist" class="music-playlist"></div>
+    </section>
+
     <div id="public-video-list" class="public-video-list"></div>
     <p id="status-message" class="status-message" role="status" hidden></p>
   </main>
