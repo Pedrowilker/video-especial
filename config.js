@@ -4,5 +4,5 @@
 // Não reutilize a chave que foi exposta no repositório público.
 window.APP_CONFIG = {
   driveFolderId: "1Z_AZNMk9PK1nwzN2l19j_cEoUu75zc3_",
-  driveApiKey: "COLE_SUA_CHAVE_NOVA_RESTRITA_AQUI"
+  driveApiKey: "AIzaSyBrapZnsH5ukTzHC7FVtGe94P1PAyADnXU"
 };
