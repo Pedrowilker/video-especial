@@ -30,3 +30,9 @@
 .drive-folder-card{display:flex;flex-direction:column;align-items:flex-start;min-height:145px}
 .folder-open-button{margin-top:auto}
 @media(max-width:760px){.folder-form{padding:14px}.folder-form-row{flex-direction:column}.folder-submit{width:100%}.public-video-list{grid-template-columns:1fr}.drive-file-card{padding:12px}.drive-file-card .drive-player-wrap{min-height:200px}}
+
+
+/* Interface simplificada */
+.site-header{padding:4px 2px}
+.folder-form{padding:14px}
+.folder-hint{display:none}
