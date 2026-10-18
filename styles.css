@@ -1,0 +1,58 @@
+* { box-sizing: border-box; }
+:root {
+  color-scheme: dark;
+  --bg: #10131b;
+  --panel: rgba(27, 32, 45, .82);
+  --text: #f4f1ed;
+  --muted: #a6a8b4;
+  --accent: #c5a8ee;
+  --line: rgba(255,255,255,.10);
+}
+html { min-height: 100%; background: var(--bg); }
+body {
+  margin: 0; min-height: 100vh; color: var(--text);
+  font-family: "DM Sans", sans-serif;
+  background: radial-gradient(ellipse at 50% 0%, #29243a 0%, #171925 38%, var(--bg) 75%);
+}
+.page { width: min(100% - 40px, 900px); margin: 0 auto; position: relative; padding: 28px 0 24px; }
+.ambient { position: fixed; width: 300px; height: 300px; border-radius: 50%; filter: blur(100px); opacity: .12; pointer-events: none; z-index: 0; }
+.ambient-one { background: #9d70d8; top: 18%; left: -180px; }
+.ambient-two { background: #657bd0; right: -190px; bottom: 5%; }
+.topbar, .intro, .video-card, .footer { position: relative; z-index: 1; }
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 58px; }
+.brand { display: inline-flex; gap: 10px; align-items: center; color: #eee9f5; text-decoration: none; font-size: 11px; font-weight: 700; letter-spacing: .19em; }
+.brand-mark { color: var(--accent); font-size: 21px; }
+.top-note { color: var(--muted); font-size: 12px; display: flex; align-items: center; gap: 8px; }
+.status-dot, .duration-dot { width: 7px; height: 7px; display: inline-block; border-radius: 50%; background: #9bc9a8; box-shadow: 0 0 12px #9bc9a877; }
+.intro { text-align: center; max-width: 650px; margin: 0 auto 34px; }
+.eyebrow { color: var(--accent); font-size: 10px; font-weight: 700; letter-spacing: .28em; margin: 0 0 17px; }
+h1 { font-family: "Playfair Display", Georgia, serif; font-size: clamp(42px, 7vw, 68px); line-height: 1.04; font-weight: 500; letter-spacing: -.035em; margin: 0; }
+h1 em { color: var(--accent); font-weight: 500; }
+.subtitle { color: #b9bbc6; font-size: 15px; line-height: 1.75; max-width: 490px; margin: 20px auto 0; }
+.video-card { overflow: hidden; background: var(--panel); border: 1px solid var(--line); border-radius: 19px; padding: 12px; box-shadow: 0 24px 80px rgba(0,0,0,.28); backdrop-filter: blur(16px); }
+.video-frame { position: relative; aspect-ratio: 16 / 9; background: #080a10; border-radius: 12px; overflow: hidden; }
+video { width: 100%; height: 100%; display: block; object-fit: contain; background: #080a10; }
+.video-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; text-align: center; padding: 20px; background: radial-gradient(ellipse at center, #272237, #0c0f17 75%); color: #f2edf8; }
+.video-placeholder[hidden] { display: none; }
+.placeholder-icon { width: 54px; height: 54px; border: 1px solid #c5a8ee88; border-radius: 50%; display: grid; place-items: center; padding-left: 3px; color: var(--accent); font-size: 18px; }
+.video-placeholder strong { font-size: 14px; font-weight: 600; }
+.video-placeholder span { color: #a8a6b5; font-size: 12px; }
+.video-meta { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 17px 8px 8px; }
+.meta-label { color: #a99ac1; font-size: 9px; letter-spacing: .17em; font-weight: 700; }
+.video-meta p { margin: 5px 0 0; color: #eeebf2; font-size: 13px; }
+.duration { flex: 0 0 auto; display: inline-flex; align-items: center; gap: 8px; color: #c2c2cd; font-size: 10px; letter-spacing: .12em; border: 1px solid var(--line); border-radius: 30px; padding: 8px 11px; }
+.duration-dot { width: 6px; height: 6px; background: var(--accent); box-shadow: none; }
+.footer { display: flex; justify-content: center; align-items: center; gap: 10px; color: #777b89; font-size: 11px; padding: 30px 0 0; }
+.footer-symbol { color: var(--accent); font-size: 18px; }
+@media (max-width: 560px) {
+  .page { width: min(100% - 28px, 900px); padding-top: 18px; }
+  .topbar { padding-bottom: 48px; }
+  .intro { margin-bottom: 26px; }
+  .subtitle { font-size: 13px; max-width: 330px; }
+  .video-card { padding: 8px; border-radius: 15px; }
+  .video-frame { border-radius: 9px; }
+  .video-meta { padding: 14px 5px 6px; }
+  .meta-label { font-size: 8px; }
+  .video-meta p { font-size: 12px; }
+  .duration { font-size: 9px; padding: 7px 8px; }
+}
