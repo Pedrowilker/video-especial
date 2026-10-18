@@ -4,18 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#09090d">
-  <meta name="description" content="Reprodutor de vídeo online">
-  <title>Vídeo</title>
+  <meta name="description" content="Assista aos vídeos disponíveis">
+  <title>Vídeos</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script defer src="script.js"></script>
 </head>
 <body class="watch-page">
   <main class="watch-shell">
+    <header class="site-header">
+      <h1 class="site-title">Vídeos</h1>
+      <p class="site-subtitle">Biblioteca de vídeos</p>
+    </header>
     <div id="loading-state" class="loading-state"><span class="spinner"></span></div>
-    <div id="empty-state" class="empty-state" hidden><div class="empty-icon" aria-hidden="true">▶</div><p>Nenhum vídeo disponível</p></div>
+    <div id="empty-state" class="empty-state" hidden><div class="empty-icon" aria-hidden="true">▶</div><p>Nenhum vídeo encontrado nesta pasta.</p></div>
     <div id="public-video-list" class="public-video-list"></div>
     <p id="status-message" class="status-message" role="status" hidden></p>
   </main>
