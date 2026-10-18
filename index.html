@@ -3,56 +3,23 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#10131b">
-  <meta name="description" content="Uma página especial para assistir a um vídeo.">
-  <title>Uma mensagem para você</title>
-  <link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#09090d">
+  <meta name="description" content="Reprodutor de vídeo online">
+  <title>Vídeo</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-  <main class="page">
-    <div class="ambient ambient-one"></div>
-    <div class="ambient ambient-two"></div>
-    <header class="topbar">
-      <a class="brand" href="#" aria-label="Página inicial">
-        <span class="brand-mark">✦</span>
-        <span>UM MOMENTO</span>
-      </a>
-      <span class="top-note"><span class="status-dot"></span> Feito com carinho</span>
-    </header>
-    <section class="intro" aria-labelledby="page-title">
-      <p class="eyebrow">UM VÍDEO ESPECIAL</p>
-      <h1 id="page-title">Uma mensagem<br><em>para você.</em></h1>
-      <p class="subtitle" id="intro-message">Preparei este pequeno momento. Encontre um lugar tranquilo, aperte o play e aproveite.</p>
-    </section>
-    <section class="video-card" aria-label="Reprodutor de vídeo">
-      <div class="video-frame" id="video-frame">
-        <video id="video" controls playsinline preload="metadata" poster="">
-          Seu navegador não consegue reproduzir este vídeo.
-        </video>
-        <div class="video-placeholder" id="video-placeholder">
-          <div class="placeholder-icon">▶</div>
-          <strong>Seu vídeo aparecerá aqui</strong>
-          <span>Adicione o endereço do arquivo em config.js</span>
-        </div>
-      </div>
-      <div class="video-meta">
-        <div>
-          <span class="meta-label">PREPARE-SE PARA ASSISTIR</span>
-          <p id="video-caption">Quatro minutos que valem a pausa.</p>
-        </div>
-        <span class="duration"><span class="duration-dot"></span> ~4 MIN</span>
-      </div>
-    </section>
-    <footer class="footer">
-      <span>Um momento para guardar.</span>
-      <span class="footer-symbol">✧</span>
-    </footer>
-  </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="script.js"></script>
+  <script defer src="script.js"></script>
+</head>
+<body class="watch-page">
+  <main class="watch-shell">
+    <div id="player-wrap" class="player-wrap">
+      <div id="empty-state" class="empty-state" hidden><div class="empty-icon" aria-hidden="true">▶</div><p>Nenhum vídeo disponível</p></div>
+      <video id="video-player" controls playsinline preload="metadata" hidden></video>
+      <div id="loading-state" class="loading-state"><span class="spinner"></span></div>
+      <p id="status-message" class="status-message" role="status" hidden></p>
+    </div>
+  </main>
 </body>
 </html>
