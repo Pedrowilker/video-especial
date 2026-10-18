@@ -309,14 +309,18 @@ body.watch-page::after{
 }
 
 
-/* Usa a foto enviada como fundo visível da página */
+/* Fundo em alta resolução (1920x1080, nítido) */
 html, body { background-color:#07070b !important; }
 body.watch-page {
   background-color:#07070b !important;
   background-image:
-    linear-gradient(90deg,rgba(4,4,8,.26),rgba(4,4,8,.15) 45%,rgba(4,4,8,.32)),
-    linear-gradient(0deg,rgba(4,4,8,.42),rgba(4,4,8,.05) 55%,rgba(4,4,8,.20)),
-    var(--uploaded-background, none) !important;
+    linear-gradient(90deg,rgba(4,4,8,.30),rgba(4,4,8,.16) 45%,rgba(4,4,8,.34)),
+    linear-gradient(0deg,rgba(4,4,8,.45),rgba(4,4,8,.04) 55%,rgba(4,4,8,.22)),
+    url("./assets/background-hd.jpg") !important;
+  background-image:
+    linear-gradient(90deg,rgba(4,4,8,.30),rgba(4,4,8,.16) 45%,rgba(4,4,8,.34)),
+    linear-gradient(0deg,rgba(4,4,8,.45),rgba(4,4,8,.04) 55%,rgba(4,4,8,.22)),
+    image-set(url("./assets/background-hd.webp") type("image/webp"), url("./assets/background-hd.jpg") type("image/jpeg")) !important;
   background-position:center,center,center 48% !important;
   background-size:cover,cover,cover !important;
   background-repeat:no-repeat !important;
@@ -324,13 +328,15 @@ body.watch-page {
 }
 body.watch-page::before, body.watch-page::after { display:none !important; }
 .watch-shell {
-  background:rgba(9,8,13,.25) !important;
-  backdrop-filter:blur(5px) !important;
-  -webkit-backdrop-filter:blur(5px) !important;
+  background:rgba(9,8,13,.42) !important;
+  backdrop-filter:blur(2px) !important;
+  -webkit-backdrop-filter:blur(2px) !important;
+}
+@media (max-width:820px){
+  /* background-attachment:fixed costuma falhar no celular */
+  body.watch-page { background-attachment:scroll,scroll,scroll !important; }
 }
 
-
-/* Reprodutor universal para vídeos, música e playlists */
 .external-player{display:grid;gap:12px;padding:16px;border:1px solid rgba(239,232,250,.16);border-radius:18px;background:rgba(8,7,12,.62);box-shadow:0 16px 42px rgba(0,0,0,.25)}
 .external-player[hidden]{display:none}
 .external-player-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
