@@ -7,9 +7,9 @@
   <meta name="description" content="Biblioteca de arquivos">
   <title>Biblioteca</title>
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="styles.css?v=20261018-5">
-  <script src="config.js?v=20261018-5"></script>
-  <script defer src="script.js?v=20261018-5"></script>
+  <link rel="stylesheet" href="styles.css?v=20261018-6">
+  <script src="config.js?v=20261018-6"></script>
+  <script defer src="script.js?v=20261018-6"></script>
 </head>
 <body class="watch-page">
   <main class="watch-shell">
@@ -17,9 +17,9 @@
       <h1 class="site-title">Biblioteca</h1>
     </header>
 
-    <form id="folder-form" class="folder-form">
+    <form id="folder-form" class="folder-form" autocomplete="off">
       <div class="folder-form-row">
-        <input id="folder-input" name="folder" type="text" autocomplete="url"
+        <input id="folder-input" name="folder" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" data-lpignore="true"
           aria-label="Link da pasta do Google Drive"
           placeholder="Cole o link da pasta do Google Drive" required>
         <button id="load-folder-button" type="submit" class="folder-submit">Abrir</button>

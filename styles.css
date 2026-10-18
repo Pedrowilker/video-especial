@@ -36,3 +36,211 @@
 .site-header{padding:4px 2px}
 .folder-form{padding:14px}
 .folder-hint{display:none}
+
+
+/* Visual cinematográfico: tema escuro inspirado em Supernatural */
+:root{
+  --bg:#07070b;
+  --panel:rgba(13,12,18,.82);
+  --line:rgba(224,218,241,.13);
+  --text:#f7f5fb;
+  --muted:#aaa5b8;
+  --accent:#c13d4a;
+  --accent2:#8d2944;
+}
+html,body{background:#07070b}
+body.watch-page{
+  display:block;
+  position:relative;
+  isolation:isolate;
+  min-height:100vh;
+  padding:clamp(14px,3vw,42px);
+  background:#07070b;
+}
+body.watch-page::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-2;
+  pointer-events:none;
+  background-color:#07070b;
+  background-image:
+    linear-gradient(90deg,rgba(5,5,9,.86) 0%,rgba(7,6,12,.66) 48%,rgba(5,5,9,.87) 100%),
+    linear-gradient(0deg,rgba(5,5,9,.87) 0%,rgba(5,5,9,.20) 68%,rgba(5,5,9,.55) 100%),
+    url("https://i.pinimg.com/736x/d7/42/e8/d742e83fefc3a3b77888f1df7a5c9b18.jpg"),
+    url("https://c4.wallpaperflare.com/wallpaper/44/878/421/the-series-dean-supernatural-supernatural-impala-hd-wallpaper-preview.jpg");
+  background-position:center,center,center 38%,center 48%;
+  background-size:cover,cover,cover,cover;
+  background-repeat:no-repeat;
+  transform:scale(1.015);
+}
+body.watch-page::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  z-index:-1;
+  pointer-events:none;
+  background:
+    radial-gradient(ellipse at 12% 7%,rgba(145,30,52,.19),transparent 34%),
+    radial-gradient(ellipse at 88% 70%,rgba(67,42,110,.18),transparent 38%);
+}
+.watch-shell{
+  position:relative;
+  z-index:1;
+  width:min(1320px,100%);
+  min-height:calc(100vh - 2 * clamp(14px,3vw,42px));
+  margin:0 auto;
+  padding:clamp(18px,3vw,38px);
+  gap:22px;
+  background:rgba(10,9,15,.48);
+  border:1px solid rgba(239,232,250,.12);
+  border-radius:26px;
+  box-shadow:0 28px 100px rgba(0,0,0,.48);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+.site-header{padding:0 2px 2px}
+.site-title{
+  font-size:clamp(30px,4vw,42px);
+  line-height:1.08;
+  letter-spacing:-.055em;
+  color:#fff;
+  text-shadow:0 3px 25px rgba(0,0,0,.4);
+}
+.site-title::after{
+  content:"";
+  display:block;
+  width:58px;
+  height:3px;
+  margin-top:14px;
+  border-radius:10px;
+  background:linear-gradient(90deg,#d24b56,#8d2944,transparent);
+  box-shadow:0 0 20px rgba(195,49,67,.4);
+}
+.folder-form{
+  padding:9px;
+  gap:0;
+  border:1px solid rgba(235,225,247,.14);
+  border-radius:17px;
+  background:rgba(14,12,19,.78);
+  box-shadow:0 12px 36px rgba(0,0,0,.20);
+  backdrop-filter:blur(12px);
+}
+.folder-form-row{gap:10px}
+.folder-form input{
+  height:54px;
+  padding:0 17px;
+  border:1px solid rgba(229,220,244,.18);
+  border-radius:12px;
+  background:rgba(5,5,9,.72);
+  color:#fff;
+  font-size:14px;
+  transition:border-color .18s,box-shadow .18s;
+}
+.folder-form input:focus{
+  border-color:rgba(195,61,74,.85);
+  box-shadow:0 0 0 3px rgba(195,61,74,.12);
+}
+.folder-form input::placeholder{color:#898495}
+.folder-submit{
+  min-width:100px;
+  height:54px;
+  padding:0 23px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:12px;
+  background:linear-gradient(135deg,#b83448,#742441);
+  box-shadow:0 7px 22px rgba(105,22,43,.25);
+  font-size:13px;
+  transition:transform .18s,filter .18s,box-shadow .18s;
+}
+.folder-submit:hover:not(:disabled){
+  filter:brightness(1.13);
+  transform:translateY(-1px);
+  box-shadow:0 10px 28px rgba(155,28,53,.32);
+}
+.folder-submit:disabled{opacity:.8}
+.folder-navigation{min-height:0;gap:13px}
+.folder-summary{font-size:12px;color:#c3bccd}
+.folder-back{
+  border-radius:10px;
+  border-color:rgba(255,255,255,.12);
+  background:rgba(20,18,27,.85);
+}
+.public-video-list{
+  gap:22px;
+  column-gap:22px;
+}
+.drive-file-card{
+  padding:17px;
+  border-color:rgba(239,232,250,.13);
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(20,17,26,.91),rgba(8,8,13,.87));
+  box-shadow:0 14px 38px rgba(0,0,0,.25);
+  backdrop-filter:blur(9px);
+  transition:transform .18s,border-color .18s,box-shadow .18s;
+}
+.drive-file-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(205,83,99,.38);
+  box-shadow:0 18px 42px rgba(0,0,0,.32);
+}
+.drive-file-card .drive-video-title{
+  margin-bottom:9px;
+  color:#f6f1f8;
+  font-size:clamp(14px,1.25vw,17px);
+  line-height:1.45;
+}
+.drive-file-meta{color:#aaa2b8}
+.drive-file-card .drive-player-wrap{
+  min-height:180px;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:12px;
+  background:#050508;
+}
+.drive-file-card .drive-open-link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding-top:2px;
+  color:#f28b9a;
+  font-weight:600;
+}
+.drive-file-card .drive-open-link:hover{color:#ffd2d8}
+.folder-open-button{
+  border-radius:10px;
+  background:linear-gradient(135deg,#b83448,#742441);
+}
+.status-message{
+  border:1px solid rgba(213,71,91,.19);
+  border-radius:12px;
+  background:rgba(57,14,25,.86);
+  color:#ffdce1;
+}
+.empty-state{
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:16px;
+  background:rgba(10,9,15,.52);
+}
+@media(max-width:760px){
+  body.watch-page{padding:10px}
+  .watch-shell{
+    width:100%;
+    min-height:calc(100vh - 20px);
+    padding:16px;
+    gap:17px;
+    border-radius:18px;
+  }
+  .site-title{font-size:32px}
+  .folder-form{padding:7px}
+  .folder-form-row{flex-direction:row}
+  .folder-form input{height:49px;padding:0 12px;font-size:12px}
+  .folder-submit{min-width:72px;height:49px;padding:0 12px;font-size:12px}
+  .public-video-list{grid-template-columns:1fr;gap:16px}
+  .drive-file-card{padding:12px}
+  .drive-file-card .drive-player-wrap{min-height:190px}
+}
+@media(max-width:420px){
+  .folder-form-row{flex-direction:column}
+  .folder-submit{width:100%}
+}

@@ -233,7 +233,7 @@
       openFolder.textContent = 'Abrir pasta';
       openFolder.addEventListener('click', () => {
         if (currentFolder && currentFolder.id !== file.id) navigationStack.push(currentFolder);
-        loadFolder({ id: file.id, resourceKey: file.resourceKey || '' }, true);
+        loadFolder({ id: file.id, resourceKey: file.resourceKey || '' });
       });
       card.append(openFolder);
       return card;
@@ -273,7 +273,7 @@
     summary.hidden = false;
   }
 
-  async function loadFolder(folder, updateInput = true) {
+  async function loadFolder(folder) {
     if (!folder || !folder.id) {
       showMessage('Link inválido. Use uma pasta do Google Drive.');
       return;
@@ -289,7 +289,7 @@
     const thisRequest = ++requestSequence;
     currentFolder = folder;
 
-    if (updateInput) input.value = folderUrl(folder);
+    input.value = '';
     backButton.hidden = navigationStack.length === 0;
     setLoading(true);
 
@@ -313,25 +313,24 @@
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const folder = normalizeFolderReference(input.value);
+    input.value = '';
     if (!folder) {
       cancelCurrentRequest();
-      showMessage('Cole um link válido de uma pasta do Google Drive.');
+      showMessage('Link inválido. Use uma pasta do Google Drive.');
       return;
     }
     if (currentFolder && currentFolder.id !== folder.id) navigationStack.push(currentFolder);
-    loadFolder(folder, true);
+    loadFolder(folder);
   });
 
   backButton.addEventListener('click', () => {
     const previousFolder = navigationStack.pop();
-    if (previousFolder) loadFolder(previousFolder, true);
+    if (previousFolder) loadFolder(previousFolder);
     backButton.hidden = navigationStack.length === 0;
   });
 
-  const initialFolder = normalizeFolderReference(cfg.driveFolderId);
-  if (initialFolder) input.value = folderUrl(initialFolder);
-
-  // Não carrega a pasta inicial automaticamente: permite colar outro link desde o início.
+  // Nunca preencher ou persistir o link pesquisado. A pesquisa começa vazia a cada abertura.
+  input.value = '';
   loading.hidden = true;
   if (!cfg.driveApiKey || cfg.driveApiKey.startsWith('COLE_')) {
     showMessage('Biblioteca indisponível.');
