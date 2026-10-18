@@ -3,5 +3,5 @@
 // e ao site publicado. Não reutilize uma chave previamente exposta.
 window.APP_CONFIG = {
   driveFolderId: "1Z_AZNMk9PK1nwzN2l19j_cEoUu75zc3_",
-  driveApiKey: "COLE_SUA_CHAVE_NOVA_RESTRITA_AQUI"
+  driveApiKey: "AIzaSyCFk_9K-up0hMBytpCsqJ5WKRZAycJdBkQ"
 };
