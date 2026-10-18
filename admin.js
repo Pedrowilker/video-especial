@@ -73,7 +73,8 @@
     $('progress-percent').textContent = '0%';
     hideNotice(uploadNotice);
     uploadBtn.disabled = true; fileInput.disabled = true;
-    const endpoint = cfg.supabaseUrl.replace(/\/$/,'') + '/storage/v1/upload/resumable';
+    const projectUrl = cfg.supabaseUrl.replace(/\/$/,'');
+    const endpoint = projectUrl.replace(/^https:\/\/([^.]+)\.supabase\.co$/, 'https://$1.storage.supabase.co') + '/storage/v1/upload/resumable';
     try {
       await new Promise((resolve,reject) => {
         activeUpload = new tus.Upload(file, {
