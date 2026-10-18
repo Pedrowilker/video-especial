@@ -807,4 +807,22 @@
   // Nunca preencher ou persistir o link pesquisado. A pesquisa começa vazia a cada abertura.
   input.value = '';
   loading.hidden = true;
+
+  // Carrega a imagem fornecida pelo usuário a partir de partes estáticas no mesmo site.
+  (async function applyUploadedBackground() {
+    const parts = ['01','02','03','04','05'];
+    try {
+      const encodedParts = await Promise.all(parts.map(async (part) => {
+        const response = await fetch('assets/background-parts/part-' + part + '.txt?v=20261018-12', { cache: 'force-cache' });
+        if (!response.ok) throw new Error('Parte do fundo indisponível');
+        return (await response.text()).trim();
+      }));
+      const encodedImage = encodedParts.join('');
+      if (encodedImage.length < 20000) throw new Error('Imagem incompleta');
+      document.documentElement.style.setProperty('--uploaded-background', 'url("data:image/webp;base64,' + encodedImage + '")');
+    } catch (error) {
+      console.error('Não foi possível carregar a imagem de fundo:', error);
+    }
+  })();
+
 })();
