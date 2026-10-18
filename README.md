@@ -10,7 +10,7 @@ A pasta informada para este projeto já está preenchida em `config.js`. Para a 
 2. Crie um projeto (ou selecione um projeto existente).
 3. Em **APIs e serviços > Biblioteca**, procure **Google Drive API** e clique em **Ativar**.
 4. Vá a **APIs e serviços > Credenciais > Criar credenciais > Chave de API**.
-5. Copie a chave e abra o arquivo `config.js) neste repositório.
+5. Copie a chave e abra o arquivo `config.js` neste repositório.
 6. Substitua `COLE_SUA_CHAVE_DA_API_DO_GOOGLE` pela chave criada.
 7. Depois que souber o endereço público do site, restrinja a chave em **Credenciais** para aceitar solicitações apenas desse domínio e limite a API à Google Drive API.
 8. Confirme que a pasta do Drive está compartilhada como **Qualquer pessoa com o link — Leitor**.
