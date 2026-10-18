@@ -20,6 +20,7 @@
     message.textContent = text;
     message.hidden = false;
     summary.hidden = true;
+    list.replaceChildren();
   }
 
   function setLoading(isLoading) {
@@ -189,7 +190,6 @@
       frame.allow = 'autoplay; fullscreen; picture-in-picture';
       frame.allowFullscreen = true;
       frame.referrerPolicy = 'strict-origin-when-cross-origin';
-      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-presentation allow-forms');
       frameWrap.append(frame);
       card.append(frameWrap);
     } else {
