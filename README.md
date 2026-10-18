@@ -1,43 +1,35 @@
-# Reprodutor de vídeo + painel administrativo
+# Biblioteca de vídeos com Google Drive
 
-Site minimalista com uma página pública de reprodução e um painel protegido para enviar e excluir vídeos. O arquivo de vídeo fica no Supabase Storage, não no GitHub.
+A página inicial lista automaticamente os vídeos de uma pasta pública do Google Drive e incorpora o player do Drive para assistir no próprio site. Os vídeos ficam no seu Drive; o repositório guarda apenas os arquivos do site.
 
-## Antes de começar
+## Configuração inicial
 
-- Conta no [Supabase](https://supabase.com/).
-- Plano do armazenamento que aceite o tamanho dos seus vídeos. Um arquivo de 800 MB ultrapassa os limites padrão de upload de alguns planos gratuitos. Verifique o limite máximo de arquivo e os custos/tráfego do seu projeto antes de enviar.
-- Conta na [Vercel](https://vercel.com/) ou outro host estático para publicar os arquivos deste repositório.
+A pasta informada para este projeto já está preenchida em `config.js`. Para a listagem automática funcionar, falta criar uma chave de API do Google Drive.
 
-## 1. Configurar Supabase
+1. Abra o [Google Cloud Console](https://console.cloud.google.com/).
+2. Crie um projeto (ou selecione um projeto existente).
+3. Em **APIs e serviços > Biblioteca**, procure **Google Drive API** e clique em **Ativar**.
+4. Vá a **APIs e serviços > Credenciais > Criar credenciais > Chave de API**.
+5. Copie a chave e abra o arquivo `config.js) neste repositório.
+6. Substitua `COLE_SUA_CHAVE_DA_API_DO_GOOGLE` pela chave criada.
+7. Depois que souber o endereço público do site, restrinja a chave em **Credenciais** para aceitar solicitações apenas desse domínio e limite a API à Google Drive API.
+8. Confirme que a pasta do Drive está compartilhada como **Qualquer pessoa com o link — Leitor**.
 
-1. Crie um projeto no Supabase.
-2. Abra **SQL Editor**, crie uma consulta e execute todo o conteúdo de `supabase.sql`.
-3. Em **Authentication > Sign In / Providers**, desative o cadastro público (Allow new users to sign up), para que visitantes não possam criar contas.
-4. Em **Authentication > Users**, crie manualmente o usuário administrativo (e-mail e senha).
-5. Em **Project Settings > API**, copie a Project URL e a chave pública/anon.
-6. Edite `config.js` e substitua `COLE_A_URL_DO_SEU_PROJETO` e `COLE_SUA_CHAVE_PUBLICA_ANON`. A chave pública/anon é feita para uso no navegador; nunca coloque uma chave `service_role` neste arquivo.
+## Como usar
 
-## 2. Publicar
+- Coloque os vídeos dentro da pasta configurada.
+- A página lista os arquivos com tipo de vídeo e mostra o nome de cada um.
+- Os vídeos novos aparecem quando a página é carregada novamente.
+- A reprodução é feita pelo player incorporado do Google Drive.
 
-1. Importe o repositório `Pedrowilker/video-especial` na Vercel.
-2. Use as configurações padrão para um site estático, sem build command.
-3. Publique e abra o endereço fornecido pela Vercel.
-4. Para administrar, abra o mesmo domínio com `/admin.html`.
+## Limitações importantes
 
-## 3. Usar
-
-- Entre em `/admin.html` com o usuário criado no Supabase.
-- Escolha um arquivo de vídeo e clique em **Enviar e publicar**.
-- O envio usa upload resumível para ajudar com arquivos grandes.
-- A página inicial exibe o vídeo enviado mais recentemente.
-- Excluir um vídeo remove o arquivo do armazenamento e o registro da biblioteca.
-
-## Importante sobre arquivos grandes
-
-O upload resumível não remove os limites do plano do provedor. Confira no Supabase os limites atuais de tamanho por arquivo, espaço e tráfego. O SQL configura o bucket para aceitar até 5 GB, mas o limite efetivo do projeto também precisa permitir o tamanho escolhido. Para 800 MB, pode ser necessário um plano pago.
+- A listagem automática precisa da chave da API do Google.
+- Apenas arquivos que o Drive identifica como vídeos são listados; documentos e outros tipos de arquivo não aparecem na galeria de reprodução.
+- O Google Drive pode impor limites de tráfego ou interromper temporariamente a reprodução de arquivos muito acessados.
+- O site ainda precisa ser publicado em uma hospedagem estática, como GitHub Pages ou Vercel.
+- Os arquivos `admin.html` e `admin.js` pertencem à versão anterior baseada em Supabase e não são necessários para a galeria do Drive.
 
 ## Segurança
 
-- Não compartilhe a senha administrativa.
-- Nunca coloque a chave secreta `service_role` no frontend.
-- O bucket de vídeos é público para que qualquer pessoa com o link do site consiga reproduzir os arquivos. A página inicial mostra somente o vídeo mais recente; os arquivos antigos ficam na biblioteca administrativa até serem excluídos.
+A chave de API não é uma senha privada, mas deve ser restringida por domínio e API no Google Cloud. Não coloque senhas de conta Google nem credenciais privadas no código do site.
