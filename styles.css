@@ -353,4 +353,5 @@ audio.external-media-element{height:70px;max-height:none;aspect-ratio:auto}
 
 /* Fundo mais nítido: retira o desfoque do painel e reduz a camada escura */
 .watch-shell{background:rgba(9,8,13,.13) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
-body.watch-page{background-image:linear-gradient(90deg,rgba(4,4,8,.12),rgba(4,4,8,.04) 45%,rgba(4,4,8,.16)),linear-gradient(0deg,rgba(4,4,8,.22),rgba(4,4,8,.02) 55%,rgba(4,4,8,.12)),var(--uploaded-background, none) !important}
+body.watch-page{background-image:linear-gradient(90deg,rgba(4,4,8,.12),rgba(4,4,8,.04) 45%,rgba(4,4,8,.16)),linear-gradient(0deg,rgba(4,4,8,.22),rgba(4,4,8,.02) 55%,rgba(4,4,8,.12)),url("./assets/background-hd.jpg") !important}
+body.watch-page{background-image:linear-gradient(90deg,rgba(4,4,8,.12),rgba(4,4,8,.04) 45%,rgba(4,4,8,.16)),linear-gradient(0deg,rgba(4,4,8,.22),rgba(4,4,8,.02) 55%,rgba(4,4,8,.12)),image-set(url("./assets/background-hd.webp") type("image/webp"),url("./assets/background-hd.jpg") type("image/jpeg")) !important}
