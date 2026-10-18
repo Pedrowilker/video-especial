@@ -1,6 +1,6 @@
 // Configuração da biblioteca de vídeos do Google Drive.
 // A chave da API é pública e deve ser restringida ao domínio do site no Google Cloud.
 window.APP_CONFIG = {
-  driveFolderId: "1Z_AZNMk9PK1nwzN2l19j_cEoUu75zc3_",
+  driveFolderId: "https://drive.google.com/drive/folders/1Z_AZNMk9PK1nwzN2l19j_cEoUu75zc3_?usp=sharing",
   driveApiKey: "AIzaSyBrapZnsH5ukTzHC7FVtGe94P1PAyADnXU"
 };
