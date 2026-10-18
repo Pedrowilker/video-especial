@@ -307,3 +307,24 @@ body.watch-page::after{
   .music-cover{flex-basis:48px;width:48px;height:48px}
   .music-track-item{padding:9px}
 }
+
+
+/* Usa a foto enviada como fundo visível da página */
+html, body { background-color:#07070b !important; }
+body.watch-page {
+  background-color:#07070b !important;
+  background-image:
+    linear-gradient(90deg,rgba(4,4,8,.26),rgba(4,4,8,.15) 45%,rgba(4,4,8,.32)),
+    linear-gradient(0deg,rgba(4,4,8,.42),rgba(4,4,8,.05) 55%,rgba(4,4,8,.20)),
+    url("./assets/supernatural-background.jpg") !important;
+  background-position:center,center,center 48% !important;
+  background-size:cover,cover,cover !important;
+  background-repeat:no-repeat !important;
+  background-attachment:fixed !important;
+}
+body.watch-page::before, body.watch-page::after { display:none !important; }
+.watch-shell {
+  background:rgba(9,8,13,.25) !important;
+  backdrop-filter:blur(5px) !important;
+  -webkit-backdrop-filter:blur(5px) !important;
+}
