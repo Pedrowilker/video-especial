@@ -1,0 +1,64 @@
+SITE DE VÍDEO — GUIA RÁPIDO
+===========================
+
+O QUE HÁ NA PASTA
+- index.html: página do site
+- styles.css: aparência e layout
+- config.js: textos e endereço do vídeo
+- script.js: carregamento do vídeo
+- favicon.svg: ícone da aba do navegador
+
+1. TESTAR NO COMPUTADOR
+Deixe o arquivo de vídeo nesta pasta com o nome video.mp4 (ou altere videoUrl
+em config.js). Abra index.html no navegador para uma prévia. Para testar
+com mais fidelidade, use a extensão Live Server do VS Code.
+
+2. HOSPEDAR O VÍDEO
+Recomendação: hospede o MP4 em um serviço de vídeo/armazenamento que forneça
+um endereço direto e público para reprodução, por exemplo Cloudinary.
+Crie uma conta, faça upload do vídeo e copie a URL HTTPS de entrega do vídeo.
+O endereço precisa apontar para o arquivo de vídeo (MP4), não para uma página
+de visualização ou uma tela de compartilhamento.
+
+Depois, abra config.js e substitua:
+  videoUrl: "video.mp4",
+por:
+  videoUrl: "https://SEU-ENDERECO-DIRETO/video.mp4",
+
+Se o provedor oferecer opção de acesso público, use-a para que qualquer
+pessoa com o link da página consiga assistir. Não coloque senhas, dados
+pessoais ou arquivos privados no site.
+
+3. PUBLICAR O SITE GRATUITAMENTE NA VERCEL
+- Acesse https://vercel.com e crie uma conta.
+- Crie um projeto novo e importe o repositório GitHub que contém esta pasta.
+- Se esta pasta for a raiz do repositório, mantenha as configurações padrão
+  para um site estático e publique.
+- Se o projeto estiver dentro de uma subpasta do repositório, informe essa
+  subpasta como Root Directory.
+- A Vercel fornecerá um endereço parecido com https://nome-do-projeto.vercel.app.
+- Sempre que atualizar os arquivos e enviar um commit ao GitHub, a Vercel
+  poderá publicar a atualização automaticamente.
+
+Alternativa simples: use https://app.netlify.com/drop e arraste a pasta
+do site já preparada (com index.html, CSS, JS, favicon e config.js).
+O vídeo hospedado separadamente não precisa ser arrastado junto.
+
+4. COMPARTILHAR
+Copie o endereço .vercel.app (ou o endereço do Netlify) e envie à pessoa.
+O endereço da página é compartilhável. Lembre-se: qualquer pessoa que tiver
+o link poderá abrir a página e assistir ao vídeo.
+
+IMPORTANTE SOBRE PRIVACIDADE
+- O link da página não é uma senha: quem receber pode encaminhá-lo.
+- A URL direta do vídeo também poderá ser acessada por quem a descobrir.
+- Não use este método para conteúdo que precise de sigilo ou controle rigoroso
+  de acesso.
+- Para melhor reprodução, o serviço de vídeo deve permitir streaming HTTP
+  e requisições de faixa (Range), além de entregar o MP4 por HTTPS.
+- Não há reprodução automática: a pessoa escolhe quando apertar play.
+- O vídeo não foi incluído neste pacote. Você deve hospedá-lo e preencher
+  videoUrl em config.js antes de publicar.
+
+DICA
+Use MP4 com vídeo H.264 e áudio AAC para maior compatibilidade.
